@@ -1,0 +1,19 @@
+{
+  "name": "nextdoor-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.1.2",
+    "jest-cli": "^29.1.2"
+  },
+  "dependencies": {
+    "axios": "^0.27.2"
+  }
+}
