@@ -1,21 +1,15 @@
 module.exports = class NextdoorApi {
 
-  constructor(bearerToken, idToken) {
+  constructor(csrfToken, idToken, atToken) {
     this.nextdoorApiUrl = 'https://api.uk.nextdoor.com/api/gql/';
 
-    const requiredOptions = ['BearerToken', 'IdToken'];
+    this.csrfToken = csrfToken;
+    this.idToken = idToken;
+    this.atToken = atToken;
 
-    // Set suitable user agent to allow access as nextdoor block others
-    this.axiosOptions = {
-      headers: {
-        'User-Agent': 'Nextdoor/6.2.2 (iPad; iPadOS 15.5; v1; 382532; production build) Apple; iPad12,1; ; ',
-        'x-nd-id-token': idToken,
-        'Authorization': 'Bearer ' + bearerToken,
-      }
-    };
   }
-  
-  async getPersonalizedFeed(sessionId, account, loanId) {
+
+  async getPersonalizedFeed() {
 
     const axios = require('axios');
 
@@ -54,6 +48,14 @@ module.exports = class NextdoorApi {
         post {
           subject
           body
+          photos {
+            url
+            __typename
+          }
+          links {
+            url
+            __typename
+          }
           comments (mode: DETAILS) {
             pagedComments {
               edges {
@@ -85,9 +87,33 @@ module.exports = class NextdoorApi {
         }
       }
       `
+    };
+
+    const cookies = {
+      'csrftoken': this.csrfToken,
+      'ndbr_idt': this.idToken,
+      'ndbr_at': this.atToken
     }
 
-    const response = await axios.post(this.nextdoorApiUrl + 'PersonalizedFeed', data, this.axiosOptions);
+    const cookieHeader = Object.entries(cookies)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('; ');
+ 
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: this.nextdoorApiUrl + 'PersonalizedFeed?',
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0', 
+        'Referer': 'https://nextdoor.co.uk/news_feed/', 
+        'content-type': 'application/json', 
+        'x-csrftoken': this.csrfToken, 
+        'Cookie': cookieHeader, 
+      },
+      data : data
+    };
+
+    const response = await axios.request(config);
 
     return response.data;
 
